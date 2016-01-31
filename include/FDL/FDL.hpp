@@ -1,6 +1,7 @@
 #ifndef _FDL_INCLUDE_
 #define _FDL_INCLUDE_
 
+#include <fstream>
 #include <exception>
 
 /* Snippet from GLFW */
@@ -55,30 +56,25 @@ namespace FDL {
 typedef const char* CStr;
 typedef const char* Bytes;
 
-/// \brief An 8 bit signed integer
+//	8 bit integers
 typedef signed char Int8;
-/// \brief An 8 bit unsigned integer
 typedef unsigned char Uint8;
 
-///	\brief	A 16 bit signed integer
+//	16 bit integers
 typedef signed   short Int16;
-///	\brief	A 16 bit unsigned integer
 typedef unsigned short Uint16;
 
-///	\brief	A 32 bit signed integer
+//	32 bit integers
 typedef signed   int Int32;
-///	\brief	A 32 bit unsigned integer
 typedef unsigned int Uint32;
 
 #if defined(_MSC_VER)
-///	\brief	A 64 bit signed integer
+//	64 bit integers
 typedef signed   __int64 Int64;
-///	\brief	A 64 bit unsigned integer
 typedef unsigned __int64 Uint64;
 #else
-///	\brief	A 64 bit signed integer
+//	64 bit integers
 typedef signed   long long Int64;
-///	\brief	A 64 bit unsigned integer
 typedef unsigned long long Uint64;
 #endif
 
@@ -95,11 +91,26 @@ private:
 std::vector<StreamHandler> m_streamHandlerList;
 public:
 
+////////////////////////////////////////////////////////
+///	\brief	Registers a StreamHandler to the manager
+///
+///	\param	handler	A StreamHandler to handle specific stream cases
+///
+///	\return	Whether handler was added
+////////////////////////////////////////////////////////
 bool registerStreamHandler(StreamHandler handler);
-
+////////////////////////////////////////////////////////
+///	\brief	Retrieves a stream handler for file
+///
+///	\param	file	The file to check
+////////////////////////////////////////////////////////
 StreamHandler getStreamHandlerFor(File file);
 } manager;
 
+////////////////////////////////////////////////////////
+///	\brief	A base exception class for FDL
+///
+////////////////////////////////////////////////////////
 class Exception : public std::exception
 {
 protected:
@@ -147,6 +158,7 @@ public:
 
 FDL_EXCEPTION_CREATE(FileFailException);
 FDL_EXCEPTION_CREATE_EXTEND(FileMissingException, FileFailException);
+FDL_EXCEPTION_CREATE_EXTEND(FileSizeFailureException, FileFailException);
 
 ////////////////////////////////////////////////////////
 ///	\brief	Constructor for a File
@@ -207,7 +219,7 @@ CStr getFullName();
 ////////////////////////////////////////////////////////
 ///	\brief	Retrieves the byte size of the File
 ///
-///	\throws	File::FileFailException	If size retevial can't be done
+///	\throws	File::FileSizeFailException	If size retevial can't be done
 ///	\throws	File::FileMissingException	If file does not exist
 ///
 ////////////////////////////////////////////////////////
@@ -286,10 +298,36 @@ class Directory : public File
 {
 public:
 
+////////////////////////////////////////////////////////
+///	\brief	Constructor for a Directory
+///
+///	\param	path	The path File points to, relative or absoulte, empty
+///		points to working directory
+///
+////////////////////////////////////////////////////////
 Directory(CStr path="");
+////////////////////////////////////////////////////////
+///	\brief	Constructor for a File
+///
+///	\param	root	The root to start in
+///	\param	path	The path File points to
+///
+////////////////////////////////////////////////////////
 Directory(CStr root, CStr path);
+////////////////////////////////////////////////////////
+///	\brief	Constructor for a File
+///
+///	\param	root	The root to start in
+///	\param	path	The path File points to
+///
+////////////////////////////////////////////////////////
 Directory(File root, CStr path="");
-
+////////////////////////////////////////////////////////
+///	\brief	Opens a File in the Directory
+///
+///	\param	path	A path to search for File
+///
+////////////////////////////////////////////////////////
 File open(CStr path);
 };
 
@@ -326,25 +364,87 @@ FileStream(File file);
 ///
 ////////////////////////////////////////////////////////
 FileStream(File file, bool handleBinary);
-
+////////////////////////////////////////////////////////
+///	\brief	Default destructor, closes mp_fileStream
+///
+////////////////////////////////////////////////////////
 ~FileStream();
-
+////////////////////////////////////////////////////////
+///	\brief	Opens the FileStream
+///
+///	\return	Whether FileStream opened correctly
+////////////////////////////////////////////////////////
 bool open();
-
+////////////////////////////////////////////////////////
+///	\brief	Whether the FileStream is open
+///
+////////////////////////////////////////////////////////
 bool isOpen();
-
+////////////////////////////////////////////////////////
+///	\brief	Closes the FileStream
+///
+///	\return	Whether FileStream closed properly
+////////////////////////////////////////////////////////
 void close();
-
+////////////////////////////////////////////////////////
+///	\brief	Writes data to the FileStream
+///
+///	\param	data	The data to write to the stream
+///	\param	size	The acceptable size of the data, -1 auto-assigns the size
+///
+////////////////////////////////////////////////////////
 void write(Bytes data, Int64 size=-1);
+////////////////////////////////////////////////////////
+///	\brief	Reads the data from the FileStream
+///
+///	\param	data	The data to read from the stream
+///
+////////////////////////////////////////////////////////
 Int64 read(Bytes data);
-
-void seekWrite(UInt64 position);
+////////////////////////////////////////////////////////
+///	\brief	Sets the position of the writer
+///
+///	\param	position	The position to set the writer to
+///
+///	\throws	FileStream::EOSException	If position is beyond end of stream
+///
+////////////////////////////////////////////////////////
+void seekWrite(Int64 position);
+////////////////////////////////////////////////////////
+///	\brief	Reports the position of the writer
+///
+///	\throws	File::FileSizeFailException	If writer position can't be retrieved
+///
+////////////////////////////////////////////////////////
 UInt64 tellWrite();
-
-void seekRead(UInt64 position);
-UInt64 tellRead();
-
+////////////////////////////////////////////////////////
+///	\brief	Sets the position of the reader
+///
+///	\param	position	The position to set the reader to
+///
+///	\throws	FileStream::EOSException	If position is beyond end of stream
+///
+////////////////////////////////////////////////////////
+void seekRead(Int64 position);
+////////////////////////////////////////////////////////
+///	\brief	Reports the position of the reader
+///
+///	\throws	File::FileSizeFailException	If writer position can't be retrieved
+///
+////////////////////////////////////////////////////////
+Int64 tellRead();
+////////////////////////////////////////////////////////
+///	\brief	Flushes the FileStream
+///
+///	\return	Whether flush succeeded
+////////////////////////////////////////////////////////
 bool flush();
+////////////////////////////////////////////////////////
+///	\brief	Retrieves the std::fstream currently active, returns NULL
+///		if isOpen is false
+///		
+////////////////////////////////////////////////////////
+std::fstream* getStream();
 };
 
 class FileStreamHandler
@@ -358,11 +458,11 @@ virtual FileStreamHandler(File file) = 0;
 
 virtual ~FileStreamHandler() {};
 
-virtual UInt64 read(Bytes data, UInt64 size) = 0;
+virtual Int64 read(Bytes data, Int64 size) = 0;
 
-virtual UInt64 seek(UInt64 position) = 0;
+virtual Int64 seek(Int64 position) = 0;
 
-virtual UInt64 tell() = 0;
+virtual Int64 tell() = 0;
 
 virtual bool canHandleFile();
 };
