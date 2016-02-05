@@ -1,0 +1,5 @@
+#cmakedefine _FDL_POSIX
+
+#cmakedefine _FDL_WINDOWS
+
+#cmakedefine _FDL_BUILD_DLL

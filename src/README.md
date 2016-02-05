@@ -1,12 +1,12 @@
-#Common
-Source Files which are purely cross-platform
+# Source
+Source Files for default behavior and development
 
 #Unix
-Source Files that handles the Unix specific implementation
+Source File that handles the Unix specific implementation
 
 #Windows
-Source Files that handles Windows specific implementation
+Source File that handles Windows specific implementation
 
 ---
 #Others
-If any other operating systems are to be handled, create other folders to represent them and update this file accordingly
+If any other operating systems are to be handled, create other files to represent them and update this file accordingly
