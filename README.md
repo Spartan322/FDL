@@ -34,7 +34,7 @@ This will retrieve a directory which can contain directory information, can be i
 Check out the examples and documentation for more explanations
 
 ### Path Syntax
-It is recommended to use the forward slash as backslashes require escaping, but either is allowed
+It is recommended to use the slash, as backslashes require escaping, but either is allowed (though, only slash is produced)
 
 Since Windows and POSIX absolute paths are drastically different (Windows often being more consistent, and POSIX isn't), you can use either OS form call, but they may throw FileFailException if the converted path does not work.
 

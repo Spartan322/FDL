@@ -74,6 +74,56 @@ typedef signed   long long Int64;
 typedef unsigned long long Uint64;
 #endif
 
+////////////////////////////////////////////////////////
+///	\brief	Determines whether this function is being run on Windows
+///
+////////////////////////////////////////////////////////
+bool FDLAPI isWindows();
+////////////////////////////////////////////////////////
+///	\brief	Determines whether this function is being run on a POSIX system
+///
+////////////////////////////////////////////////////////
+bool FDLAPI isPosix();
+
+////////////////////////////////////////////////////////
+///	\brief	Creates a file according to the path
+///
+///	\note	Does not throw
+///
+///	\warn	Unsafe, does not check path, avoid use
+///
+///	\param	path	The path of the file
+///	\param	recursive	Whether recursive creation is done
+///
+///	\return	Whether file creation succeeded
+////////////////////////////////////////////////////////
+bool createFileNS(CStr path, bool recursive=true);
+
+////////////////////////////////////////////////////////
+///	\brief	Deletes a file according to the path
+///
+///	\note	Does not throw
+///
+///	\warn	Unsafe, does not check path, avoid use
+///
+///	\param	path	The path to of the file to delete
+///
+///	\return	Whether file deletion succeeded
+////////////////////////////////////////////////////////
+bool deleteFileNS(CStr path);
+
+////////////////////////////////////////////////////////
+///	\brief	Converts a string to an appropriate string
+///
+///	Shall replace all instances of escaped '\' with '/'
+///
+///	\note	Returns NULL if path can not be converted
+///
+///	\param	originalStr	The original string to convert
+///
+////////////////////////////////////////////////////////
+CStr FDLAPI convertString(CStr originalStr);
+
 class Exception;
 class File;
 class Directory;
@@ -128,11 +178,13 @@ public:
 	Exception operator=(CStr message);
 };
 
+FDL_EXCEPTION_CREATE(UnsupportedException);
+
 class FDLAPI File
 {
 protected:
 
-	const char* m_fullPath;
+	CStr m_fullPath;
 public:
 
 	FDL_EXCEPTION_CREATE(FileFailException);
@@ -248,6 +300,8 @@ public:
 	////////////////////////////////////////////////////////
 	///	\brief	Deletes the file according to the path
 	///
+	///	\throws	File::FileMissingException	If file couldn't be found
+	///
 	///	\return	Whether the file deletion succeeded
 	////////////////////////////////////////////////////////
 	bool delete();
@@ -294,14 +348,6 @@ public:
 	///		version of m_fullPath
 	////////////////////////////////////////////////////////
 	CStr toNativePath();
-
-	////////////////////////////////////////////////////////
-	///	\brief	Retrieves a File based on a native path
-	///
-	///	\return	On Unix, assigns path to the File. On Windows, converts Windows
-	///		path to Unix compliant path
-	////////////////////////////////////////////////////////
-	static File convertFromNativePath(CStr path);
 };
 
 class Directory : public File
