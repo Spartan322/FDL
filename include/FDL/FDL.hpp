@@ -50,6 +50,7 @@ EXCEPT_NAME(CStr message="") : EXTEND_NAME(message) {} \
 namespace FDL {
 
 typedef const char* CStr;
+typedef char* Str;
 typedef const char* Bytes;
 
 //	8 bit integers
@@ -179,12 +180,13 @@ public:
 };
 
 FDL_EXCEPTION_CREATE(UnsupportedException);
+FDL_EXCEPTION_CREATE(BadPathException);
 
 class FDLAPI File
 {
 protected:
 
-	CStr m_fullPath;
+	std::auto_ptr<Str> m_fullPath;
 public:
 
 	FDL_EXCEPTION_CREATE(FileFailException);
@@ -196,6 +198,8 @@ public:
 	///
 	///	\param	path	The path File points to, relative or absoulte
 	///
+	///	\throws	BadPathException	If path is invalid
+	///
 	////////////////////////////////////////////////////////
 	File(CStr path);
 
@@ -205,6 +209,8 @@ public:
 	///	\param	root	The root to start in
 	///	\param	path	The path File points to according to root
 	///
+	///	\throws	BadPathException	If path is invalid or could not be formatted
+	///
 	////////////////////////////////////////////////////////
 	File(CStr root, CStr path);
 
@@ -213,6 +219,8 @@ public:
 	///
 	///	\param	root	The root to start in
 	///	\param	path	The path File points to according to root
+	///
+	///	\throws	BadPathException	If path is invalid or could not be formatted
 	///
 	////////////////////////////////////////////////////////
 	File(File root, CStr path="");
@@ -227,7 +235,7 @@ public:
 	///	\brief	Retrieves the full path of the file
 	///
 	////////////////////////////////////////////////////////
-	CStr getFullPath();
+	CStr getFullPath() const;
 
 	////////////////////////////////////////////////////////
 	///	\brief	Retrieves the extension of the file
@@ -235,25 +243,25 @@ public:
 	///	\note	return NULL if isDirectory is true
 	///
 	////////////////////////////////////////////////////////
-	CStr getExtension();
+	CStr getExtension() const;
 
 	////////////////////////////////////////////////////////
 	///	\brief Retrieves the root path of the file
 	///
 	////////////////////////////////////////////////////////
-	CStr getRootPath();
+	CStr getRootPath() const;
 
 	////////////////////////////////////////////////////////
 	///	\brief	Retrieves the file name
 	///
 	////////////////////////////////////////////////////////
-	CStr getFileName();
+	CStr getFileName() const;
 
 	////////////////////////////////////////////////////////
 	///	\brief	Retrieves the file name and extension
 	///
 	////////////////////////////////////////////////////////
-	CStr getFullName();
+	CStr getFullName() const;
 
 	////////////////////////////////////////////////////////
 	///	\brief	Retrieves the byte size of the File
@@ -347,7 +355,7 @@ public:
 	///	\return	On Unix, return m_fullPath. On Windows, return Windows compliant
 	///		version of m_fullPath
 	////////////////////////////////////////////////////////
-	CStr toNativePath();
+	CStr toNativePath() const;
 };
 
 class Directory : public File

@@ -6,13 +6,13 @@ const char* _convertString_Platform(const char* orignalString)
 	return NULL;
 }
 
-bool createFile_Platform(const char* path, bool recursive)
+bool _createFile_Platform(const char* path, bool recursive)
 {
 	throw UnsupportedException("File Creation is not supported on Windows yet");
 	return false;
 }
 
-bool deleteFile_Platform(const char* path)
+bool _deleteFile_Platform(const char* path)
 {
 	throw UnsupportedException("File Deletion is not supported on Windows yet");
 	return false;
