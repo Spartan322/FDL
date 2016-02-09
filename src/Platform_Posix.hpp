@@ -1,4 +1,5 @@
 #include <dirent.h>
+#include "Platform.hpp"
 
 const char* _convertString_Platform(const char* orignalString)
 {
@@ -15,6 +16,12 @@ bool _createFile_Platform(const char* path, bool recursive)
 bool _deleteFile_Platform(const char* path)
 {
 	throw UnsupportedException("File Deletion is not supported for Posix compliance yet");
+	return false;
+}
+
+bool _verifyString(const char* string)
+{
+	throw UnsupportedException("String verification is not supported for Posix compliance yet");
 	return false;
 }
 

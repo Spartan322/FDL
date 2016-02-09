@@ -186,7 +186,7 @@ class FDLAPI File
 {
 protected:
 
-	std::auto_ptr<Str> m_fullPath;
+	Str m_fullPath;
 public:
 
 	FDL_EXCEPTION_CREATE(FileFailException);
