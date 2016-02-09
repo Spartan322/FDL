@@ -41,7 +41,7 @@
 class FDLAPI EXCEPT_NAME : public EXTEND_NAME \
 { \
 public: \
-EXCEPT_NAME(CStr message="") : EXTEND_NAME(message) {} \
+EXCEPT_NAME(FDL::String message="") : EXTEND_NAME(message) {} \
 ~EXCEPT_NAME() { ~EXTEND_NAME(); } \
 } \
 
@@ -49,8 +49,15 @@ EXCEPT_NAME(CStr message="") : EXTEND_NAME(message) {} \
 
 namespace FDL {
 
-typedef const char* CStr;
-typedef char* Str;
+class Exception;
+class String;
+class File;
+class Directory;
+class FileStream;
+class StreamHandler;
+template<typename T>
+class ImmutableList;
+
 typedef const char* Bytes;
 
 //	8 bit integers
@@ -98,7 +105,7 @@ bool FDLAPI isPosix();
 ///
 ///	\return	Whether file creation succeeded
 ////////////////////////////////////////////////////////
-bool createFileNS(CStr path, bool recursive=true);
+bool FDLAPI createFileNS(String path, bool recursive=true);
 
 ////////////////////////////////////////////////////////
 ///	\brief	Deletes a file according to the path
@@ -111,7 +118,7 @@ bool createFileNS(CStr path, bool recursive=true);
 ///
 ///	\return	Whether file deletion succeeded
 ////////////////////////////////////////////////////////
-bool deleteFileNS(CStr path);
+bool FDLAPI deleteFileNS(String path);
 
 ////////////////////////////////////////////////////////
 ///	\brief	Converts a string to an appropriate string
@@ -123,15 +130,7 @@ bool deleteFileNS(CStr path);
 ///	\param	originalStr	The original string to convert
 ///
 ////////////////////////////////////////////////////////
-CStr FDLAPI convertString(CStr originalStr);
-
-class Exception;
-class File;
-class Directory;
-class FileStream;
-class StreamHandler;
-template<typename T>
-class ImmutableList;
+String FDLAPI convertString(String originalStr);
 
 ////////////////////////////////////////////////////////
 ///	\brief	A base exception class for FDL
@@ -141,7 +140,7 @@ class FDLAPI Exception : public std::exception
 {
 protected:
 
-	CStr m_message;
+	String m_message;
 public:
 
 	////////////////////////////////////////////////////////
@@ -150,7 +149,7 @@ public:
 	///	\param	message	The message to assign
 	///
 	////////////////////////////////////////////////////////
-	virtual Exception(CStr message="");
+	virtual Exception(String message="");
 
 	////////////////////////////////////////////////////////
 	///	\brief	The Default Destructor
@@ -162,13 +161,13 @@ public:
 	///	\brief	return the message
 	///
 	////////////////////////////////////////////////////////
-	CStr what();
+	String what();
 
 	////////////////////////////////////////////////////////
 	///	\brief	Casts the exception to return the message into a new string
 	///
 	////////////////////////////////////////////////////////
-	CStr operator CStr();
+	String operator String();
 
 	////////////////////////////////////////////////////////
 	///	\brief	Assigns a message
@@ -176,12 +175,142 @@ public:
 	///	\param	message	The message to assign
 	///
 	////////////////////////////////////////////////////////
-	Exception operator=(CStr message);
+	Exception& operator=(String message);
 };
 
 FDL_EXCEPTION_CREATE(UnsupportedException);
 FDL_EXCEPTION_CREATE(BadPathException);
 
+////////////////////////////////////////////////////////
+///	\brief	A small and simple class for handling character strings
+///
+////////////////////////////////////////////////////////
+class FDLAPI String
+{
+private:
+
+	std::size_t m_size;
+	const char* m_str;
+public:
+
+	///	\brief	A consistent null string
+	static const String null_str = String(NULL);
+
+	////////////////////////////////////////////////////////
+	///	\brief	Constructor for a String
+	///
+	///	\param	strings	The string to set
+	///
+	////////////////////////////////////////////////////////
+	String(char* string = "");
+
+	////////////////////////////////////////////////////////
+	///	\brief	Constructor for a String
+	///
+	///	\param	strings	The string to set
+	///	\param	size	The max characters to hold in the string
+	///
+	////////////////////////////////////////////////////////
+	String(char* string, std::size_t size);
+
+	////////////////////////////////////////////////////////
+	///	\brief	Constructor for a String
+	///
+	///	\param	strings	The string to set
+	///
+	////////////////////////////////////////////////////////
+	String(const char* string);
+
+	////////////////////////////////////////////////////////
+	///	\brief	Constructor for a String
+	///
+	///	\param	strings	The string to set
+	///	\param	size	The max characters to hold in the string
+	///
+	////////////////////////////////////////////////////////
+	String(const char* string, std::size_t size);
+
+	////////////////////////////////////////////////////////
+	///	\brief	Copy Constructor for a String
+	///
+	///	\param	strings	The string to copy
+	///
+	////////////////////////////////////////////////////////
+	String(const String& string);
+
+	////////////////////////////////////////////////////////
+	///	\brief	Destructor for a String
+	///
+	////////////////////////////////////////////////////////
+	~String();
+
+	////////////////////////////////////////////////////////
+	///	\brief	An equalivent operator for character strings
+	///
+	///	\param	string	The string to assign to this String
+	///
+	////////////////////////////////////////////////////////
+	String& operator=(char* string);
+
+	////////////////////////////////////////////////////////
+	///	\brief	An equalivent operator for constant character strings
+	///
+	///	\param	string	The string to assign to this String
+	///
+	////////////////////////////////////////////////////////
+	String& operator=(const char* string);
+
+	////////////////////////////////////////////////////////
+	///	\brief	A cast operator for character strings
+	///
+	////////////////////////////////////////////////////////
+	operator char*() const;
+
+	////////////////////////////////////////////////////////
+	///	\brief	A cast operator for constant character strings
+	///
+	////////////////////////////////////////////////////////
+	operator const char*() const;
+
+	////////////////////////////////////////////////////////
+	///	\brief	An bracket index operator for treatment like array
+	///
+	///	\param	position	The position being searched for
+	///
+	///	\throws	std::out_of_range	If position is beyond size
+	///
+	////////////////////////////////////////////////////////
+	char* operator[](int position);
+
+	////////////////////////////////////////////////////////
+	///	\brief	Retrieves the constant character string held within
+	///
+	///	\note	For compatibility with std classes
+	///
+	////////////////////////////////////////////////////////
+	const char* c_str() const;
+
+	////////////////////////////////////////////////////////
+	///	\brief	Retrieves the size of the character string within
+	///
+	///	\note	For compatibility with std classes
+	///
+	////////////////////////////////////////////////////////
+	std::size_t size() const;
+
+	////////////////////////////////////////////////////////
+	///	\brief	Determines if the string is a null string
+	///
+	///	\return	true if is not equal to NULL, otherwise false
+	///
+	////////////////////////////////////////////////////////
+	bool isNullStr() const;
+};
+
+////////////////////////////////////////////////////////
+///	\brief	The simpliest file managing object
+///
+////////////////////////////////////////////////////////
 class FDLAPI File
 {
 protected:
@@ -201,7 +330,7 @@ public:
 	///	\throws	BadPathException	If path is invalid
 	///
 	////////////////////////////////////////////////////////
-	File(CStr path);
+	File(String path);
 
 	////////////////////////////////////////////////////////
 	///	\brief	Constructor for a File
@@ -212,7 +341,7 @@ public:
 	///	\throws	BadPathException	If path is invalid or could not be formatted
 	///
 	////////////////////////////////////////////////////////
-	File(CStr root, CStr path);
+	File(String root, String path);
 
 	////////////////////////////////////////////////////////
 	///	\brief	Constructor for a File
@@ -223,7 +352,7 @@ public:
 	///	\throws	BadPathException	If path is invalid or could not be formatted
 	///
 	////////////////////////////////////////////////////////
-	File(File root, CStr path="");
+	File(File root, String path="");
 
 	////////////////////////////////////////////////////////
 	///	\brief	Default destructor
@@ -235,7 +364,7 @@ public:
 	///	\brief	Retrieves the full path of the file
 	///
 	////////////////////////////////////////////////////////
-	CStr getFullPath() const;
+	String getFullPath() const;
 
 	////////////////////////////////////////////////////////
 	///	\brief	Retrieves the extension of the file
@@ -243,25 +372,25 @@ public:
 	///	\note	return NULL if isDirectory is true
 	///
 	////////////////////////////////////////////////////////
-	CStr getExtension() const;
+	String getExtension() const;
 
 	////////////////////////////////////////////////////////
 	///	\brief Retrieves the root path of the file
 	///
 	////////////////////////////////////////////////////////
-	CStr getRootPath() const;
+	String getRootPath() const;
 
 	////////////////////////////////////////////////////////
 	///	\brief	Retrieves the file name
 	///
 	////////////////////////////////////////////////////////
-	CStr getFileName() const;
+	String getFileName() const;
 
 	////////////////////////////////////////////////////////
 	///	\brief	Retrieves the file name and extension
 	///
 	////////////////////////////////////////////////////////
-	CStr getFullName() const;
+	String getFullName() const;
 
 	////////////////////////////////////////////////////////
 	///	\brief	Retrieves the byte size of the File
@@ -355,7 +484,7 @@ public:
 	///	\return	On Unix, return m_fullPath. On Windows, return Windows compliant
 	///		version of m_fullPath
 	////////////////////////////////////////////////////////
-	CStr toNativePath() const;
+	String toNativePath() const;
 };
 
 class Directory : public File
@@ -369,7 +498,7 @@ public:
 	///		points to working directory
 	///
 	////////////////////////////////////////////////////////
-	Directory(CStr path="");
+	Directory(String path="");
 
 	////////////////////////////////////////////////////////
 	///	\brief	Constructor for a File
@@ -378,7 +507,7 @@ public:
 	///	\param	path	The path File points to
 	///
 	////////////////////////////////////////////////////////
-	Directory(CStr root, CStr path);
+	Directory(String root, String path);
 
 	////////////////////////////////////////////////////////
 	///	\brief	Constructor for a File
@@ -387,7 +516,7 @@ public:
 	///	\param	path	The path File points to
 	///
 	////////////////////////////////////////////////////////
-	Directory(File root, CStr path="");
+	Directory(File root, String path="");
 
 	////////////////////////////////////////////////////////
 	///	\brief	Opens a File in the Directory
@@ -395,7 +524,7 @@ public:
 	///	\param	path	A path to search for File
 	///
 	////////////////////////////////////////////////////////
-	File open(CStr path);
+	File open(String path);
 
 	////////////////////////////////////////////////////////
 	///	\brief	Retrieves an ImmutableList of the contained files

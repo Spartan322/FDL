@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "Platform.hpp"
+#include "Platform_Declare.hpp"
 
 const char* _convertString_Platform(const char* orignalString)
 {
